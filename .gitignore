@@ -1,4 +1,4 @@
 
 *.ndf
-db_lab04/UNIVER_log.ldf
+*.ldf
 *.mdf
