@@ -1,15 +1,15 @@
 use [04_UNIVER]
 
---drop table AUDITORIUM;
---drop table AUDITORIUM_TYPE;
---drop table PROGRESS;
---drop table STUDENT;
---drop table GROUPS;
---drop table PROFESSION;
---drop table TEACHER;
---drop table SUBJECT;
---drop table PULPIT;
---drop table FACULTY;
+drop table AUDITORIUM;
+drop table AUDITORIUM_TYPE;
+drop table PROGRESS;
+drop table STUDENT;
+drop table GROUPS;
+drop table PROFESSION;
+drop table TEACHER;
+drop table SUBJECT;
+drop table PULPIT;
+drop table FACULTY;
 
 create table FACULTY (
 FACULTY char(10) constraint FACULTY_PK primary key,
@@ -303,7 +303,9 @@ insert into PROGRESS (SUBJECT, IDSTUDENT, PDATE, NOTE) values
            ('สร',   1020,  '06.05.2013',7),
            ('สร',   1021,  '06.05.2013',9),
            ('สร',   1022,  '06.05.2013',5),
-           ('สร',   1023,  '06.05.2013',6)
+           ('สร',   1023,  '06.05.2013',10),
+		   ('สร',   1024,  '06.05.2013',10),
+		   ('สร',   1025,  '06.05.2013',3)
 
 create table AUDITORIUM_TYPE 
 (    AUDITORIUM_TYPE  char(10) constraint AUDITORIUM_TYPE_PK  primary key,  
