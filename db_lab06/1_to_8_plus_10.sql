@@ -70,8 +70,13 @@ order by AUDITORIUM_CAPACITY asc
 select min(AUDITORIUM_CAPACITY) as 'мин. вместимость %ЛБ%' from AUDITORIUM where AUDITORIUM_TYPE like '%ЛБ%'
 
 -- ex 10: Найти в таблице STUDENT студентов, у которых день рождения в один день
-select * from STUDENT a
+select a.IDSTUDENT, a.NAME, a.BDAY from STUDENT a
 where a.BDAY = any 
 	(select aa.BDAY from STUDENT aa 
-	where a.NAME != aa.NAME) 
+	where a.IDSTUDENT != aa.IDSTUDENT) 
 order by BDAY asc
+
+select distinct s1.IDSTUDENT, s1.NAME, s1.BDAY 
+from STUDENT s1 inner join STUDENT s2
+	on s1.BDAY = s2.BDAY and s1.IDSTUDENT != s2.IDSTUDENT
+order by s1.BDAY asc
