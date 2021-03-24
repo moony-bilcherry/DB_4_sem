@@ -76,3 +76,74 @@ declare @v_fio_short varchar(50) = substring(@v_fio, 1, charindex(' ', @v_fio))
 	+ substring(@v_fio, charindex(' ', @v_fio, charindex(' ', @v_fio) + 1) + 1, 1) + '.';
 
 select @v_fio '4.2. Оригинальное ФИО:', @v_fio_short 'Сокращенно: ';
+
+-- ex 4.3: поиск студентов, у которых ДР в след. месяце, и определение их возраста;
+select STUDENT.NAME as '4.3. ФИО', STUDENT.BDAY as 'Дата рождения',
+	(datediff(year, STUDENT.BDAY, getdate())) as 'Возраст'
+from STUDENT
+	where month(STUDENT.BDAY) = (month(getdate()) + 1);
+
+-- ex 5
+if ((select count(*) from AUDITORIUM) > 10)
+	print 'Имеется >= 10 аудиторий';
+else 
+	print 'Имеется < 10 аудиторий';
+
+-- ex 6
+select 
+	case 
+	when PROGRESS.NOTE = 10 then 'Замечательно'
+	when PROGRESS.NOTE between 7 and 9 then 'Отлично'
+	when PROGRESS.NOTE between 4 and 6 then 'Сойдет'
+	else 'Увы'
+	end 'Оценка', count(*) 'Количество'
+from PROGRESS, STUDENT, GROUPS
+where PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT 
+	and STUDENT.IDGROUP = GROUPS.IDGROUP
+	and GROUPS.FACULTY = 'ИДиП'
+group by
+	case 
+	when PROGRESS.NOTE = 10 then 'Замечательно'
+	when PROGRESS.NOTE between 7 and 9 then 'Отлично'
+	when PROGRESS.NOTE between 4 and 6 then 'Сойдет'
+	else 'Увы'
+	end
+
+-- ex 7: временная локальная таблица, заполнение циклом с while
+drop table #EX7TABLE
+create table #EX7TABLE
+	(id int not null,
+	name varchar(10) not null,
+	age int not null);
+
+set nocount on;
+declare @cnt int = 0;
+while (@cnt < 10)
+	begin
+		insert into #EX7TABLE values (@cnt, ('user' + cast(@cnt as varchar(2))), cast((floor(rand()*(60 - 18 + 1)) + 18) as int));
+		set @cnt = @cnt + 1;
+	end;
+select * from #EX7TABLE
+
+-- ex 9: try catch
+begin try
+	insert into #EX7TABLE values (null, null, null);
+	print 'Даные добавлены в таблицу';
+end try
+begin catch
+	print 'ERROR_NUMBER: ' + CONVERT(varchar, ERROR_NUMBER());
+	print 'ERROR_MESSAGE: ' + ERROR_MESSAGE();
+	print 'ERROR_LINE: ' + CONVERT(varchar, ERROR_LINE());
+	print 'ERROR_PROCEDURE: ' + CONVERT(varchar, ERROR_PROCEDURE());
+	print 'ERROR_SEVERITY: ' + CONVERT(varchar, ERROR_SEVERITY());
+	print 'ERROR_STATE: ' + CONVERT(varchar, ERROR_STATE());
+end catch
+
+-- ex 8:
+declare @ex8_cnt int = 0;
+while @ex8_cnt < 10
+	begin
+		print 'x = ' + cast(@ex8_cnt as varchar(2));
+		if (@ex8_cnt = 5) return;
+		set @ex8_cnt = @ex8_cnt + 1;
+	end;
