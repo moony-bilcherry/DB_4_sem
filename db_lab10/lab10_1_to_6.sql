@@ -21,7 +21,7 @@ set nocount on;
 declare @ex1_cnt int = 0;
 while (@ex1_cnt < 1000)
 begin
-	insert into #EX1TABLE values (floor(20000*rand()), replicate('string', 10));
+	insert into #EX1TABLE values (floor(20000*rand()), replicate('string1', 10));
 	if ((@ex1_cnt + 1) % 100 = 0) 
 		print 'Добавлено строк:' + convert(varchar, @ex1_cnt + 1);
 	set @ex1_cnt = @ex1_cnt + 1;
@@ -49,7 +49,7 @@ set nocount on;
 declare @ex2_cnt int = 0;
 while (@ex2_cnt < 10000)
 begin
-	insert into #EX2TABLE(t_ind, t_field) values (floor(30000*rand()), replicate('string', 10));
+	insert into #EX2TABLE(t_ind, t_field) values (floor(30000*rand()), replicate('string2', 10));
 	if ((@ex2_cnt + 1) % 1000 = 0) 
 		print 'Добавлено строк:' + convert(varchar, @ex2_cnt + 1);
 	set @ex2_cnt = @ex2_cnt + 1;
@@ -68,4 +68,28 @@ select * from #EX2TABLE where t_identity = 2804
 drop index #EX2_NONCLU on #EX2TABLE
 drop table #EX2TABLE
 
--- ex 3:
+-- ex 3: таблица на 10к, некластеризованный индекс покрытия
+create table #EX3TABLE 
+	(t_ind int,
+	t_identity int identity(1,1),
+	t_field varchar(100));
+
+set nocount on;
+declare @ex3_cnt int = 0;
+while (@ex3_cnt < 10000)
+begin
+	insert into #EX3TABLE(t_ind, t_field) values (floor(30000*rand()), replicate('string3', 10));
+	if ((@ex3_cnt + 1) % 1000 = 0) 
+		print 'Добавлено строк:' + convert(varchar, @ex3_cnt + 1);
+	set @ex3_cnt = @ex3_cnt + 1;
+end;
+
+select * from #EX3TABLE;
+select count(*) as 'Количество строк' from #EX3TABLE;
+
+create index #EX3_INCL on #EX3TABLE(t_ind) include (t_identity)
+select * from #EX3TABLE where t_ind > 15000;
+
+
+drop index #EX3_INCL on #EX3TABLE
+drop table #EX3TABLE
