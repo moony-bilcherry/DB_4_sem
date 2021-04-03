@@ -93,3 +93,28 @@ select * from #EX3TABLE where t_ind > 15000;
 
 drop index #EX3_INCL on #EX3TABLE
 drop table #EX3TABLE
+
+-- ex 4: таблица, некластеризованный фильтруемый индекс
+create table #EX4TABLE 
+	(t_rnd int,
+	t_identity int identity(1,1),
+	t_field varchar(100));
+
+set nocount on;
+declare @ex4_cnt int = 0;
+while (@ex4_cnt < 10000)
+begin
+	insert into #EX4TABLE(t_rnd, t_field) values (floor(30000*rand()), replicate('string3', 10));
+	if ((@ex4_cnt + 1) % 1000 = 0) 
+		print 'Добавлено строк:' + convert(varchar, @ex4_cnt + 1);
+	set @ex4_cnt = @ex4_cnt + 1;
+end;
+
+select * from #EX4TABLE where t_rnd between 7432 and 10385;
+select * from #EX4TABLE where t_rnd > 24862;
+select count(*) as 'Количество строк' from #EX4TABLE;
+
+create index #EX4_FILTER1 on #EX4TABLE(t_rnd) where (t_rnd >= 15000 and t_rnd <= 17000)
+
+drop index #EX4_FILTER1 on #EX4TABLE
+drop table #EX4TABLE
