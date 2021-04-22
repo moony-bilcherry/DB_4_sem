@@ -95,7 +95,7 @@ drop index #EX3_INCL on #EX3TABLE
 drop table #EX3TABLE
 
 -- ex 4: таблица, некластеризованный фильтруемый индекс
-create table #EX4TABLE 
+create table #EX4
 	(t_rnd int,
 	t_identity int identity(1,1),
 	t_field varchar(100));
@@ -104,17 +104,51 @@ set nocount on;
 declare @ex4_cnt int = 0;
 while (@ex4_cnt < 10000)
 begin
-	insert into #EX4TABLE(t_rnd, t_field) values (floor(30000*rand()), replicate('string3', 10));
+	insert into #EX4(t_rnd, t_field) values (floor(30000*rand()), replicate('string4', 10));
 	if ((@ex4_cnt + 1) % 1000 = 0) 
 		print 'Добавлено строк:' + convert(varchar, @ex4_cnt + 1);
 	set @ex4_cnt = @ex4_cnt + 1;
 end;
 
-select * from #EX4TABLE where t_rnd between 7432 and 10385;
-select * from #EX4TABLE where t_rnd > 24862;
-select count(*) as 'Количество строк' from #EX4TABLE;
+select * from #EX4 where t_rnd between 7432 and 10385;
+select * from #EX4 where t_rnd > 24862;
+select count(*) as 'Количество строк' from #EX4;
 
-create index #EX4_FILTER1 on #EX4TABLE(t_rnd) where (t_rnd >= 15000 and t_rnd <= 17000)
+create index #EX4_FILTER1 on #EX4(t_rnd) where (t_rnd >= 15000 and t_rnd <= 17000)
 
-drop index #EX4_FILTER1 on #EX4TABLE
-drop table #EX4TABLE
+drop index #EX4_FILTER1 on #EX4
+drop table #EX4
+
+-- ex 5: таблица, некластеризированный индекс, оценить уровень фрагментации индекса
+
+create table #EX5 
+	(tkey int,
+	cc int identity(1,1),
+	tf varchar(100));
+
+set nocount on;
+declare @ex5_cnt int = 0;
+while (@ex5_cnt < 10000)
+begin
+	insert into #EX5(tkey, tf) values (floor(30000*rand()), replicate('string5', 10));
+	if ((@ex5_cnt + 1) % 1000 = 0) 
+		print 'Добавлено строк:' + convert(varchar, @ex5_cnt + 1);
+	set @ex5_cnt = @ex5_cnt + 1;
+end;
+
+select * from #EX5;
+
+create index #EX5_TKEY on #EX5(TKEY);
+
+select name [Индекс],
+	avg_fragmentation_in_percent [Фрагментация(%)]
+	from sys.dm_db_index_physical_stats(DB_ID(N'TEMPBD'),
+		OBJECT_ID(N'#EX5'), null, null, null) ss
+	join sys.indexes ii on ss.object_id = ii.object_id and ss.index_id = ii.index_id
+	where name is not null;
+
+insert top(10000) #EX5(tkey, tf) select tkey, tf from #EX5
+drop index #EX5_TKEY on #EX5
+drop table #EX5
+
+
