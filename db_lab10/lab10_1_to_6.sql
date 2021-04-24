@@ -138,17 +138,33 @@ end;
 
 select * from #EX5;
 
-create index #EX5_TKEY on #EX5(TKEY);
+use tempdb
+create index #EX5_TKEY on #EX5(tkey);
+
+insert top(10000) #EX5(tkey, tf) select tkey, tf from #EX5
+
+alter index #EX5_TKEY on #EX5 reorganize;
+alter index #EX5_TKEY on #EX5 rebuild with (online = off);
 
 select name [Индекс],
 	avg_fragmentation_in_percent [Фрагментация(%)]
-	from sys.dm_db_index_physical_stats(DB_ID(N'TEMPBD'),
-		OBJECT_ID(N'#EX5'), null, null, null) ss
+	from sys.dm_db_index_physical_stats(DB_ID(N'TEMPDB'),
+		OBJECT_ID(N'#EX5_TKEY'), null, null, null) ss
 	join sys.indexes ii on ss.object_id = ii.object_id and ss.index_id = ii.index_id
 	where name is not null;
 
-insert top(10000) #EX5(tkey, tf) select tkey, tf from #EX5
+-- ex 6: некластеризованный индекс, fillfactor=65
+create index  #EX6_TKEY on #EX5(tkey) with (fillfactor = 65);
+
+insert top(50) percent into #EX5(tkey,tf) select tkey, tf from #EX5
+
+select name [Индекс],
+	avg_fragmentation_in_percent [Фрагментация(%)]
+	from sys.dm_db_index_physical_stats(DB_ID(N'TEMPDB'),
+		OBJECT_ID(N'#EX6_TKEY'), null, null, null) ss
+	join sys.indexes ii on ss.object_id = ii.object_id and ss.index_id = ii.index_id
+	where name is not null;
+
 drop index #EX5_TKEY on #EX5
+drop index #EX6_TKEY on #EX5
 drop table #EX5
-
-

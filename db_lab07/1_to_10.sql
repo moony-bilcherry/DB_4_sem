@@ -205,3 +205,36 @@ select p1.SUBJECT as '10. Предмет',
 from PROGRESS p1
 group by p1.SUBJECT, p1.NOTE
 having NOTE in (8, 9)
+
+-- ex 12.1: Подсчитать кол-во студентов в каждой группе, на каждом факультете
+-- и всего в университете одним запросом
+select GROUPS.FACULTY as 'Факультет', 
+	STUDENT.IDGROUP as 'Группа',
+	count(STUDENT.IDSTUDENT) as 'Кол-во студентов'
+from STUDENT, GROUPS
+where GROUPS.IDGROUP = STUDENT.IDGROUP
+group by rollup (GROUPS.FACULTY, STUDENT.IDGROUP)
+
+-- ex 12.2: Подсчитать кол-во аудиторий по типам и вместимости
+-- в корпусах и всего одним запросом
+select AUDITORIUM_TYPE as 'Тип аудитории', 
+	AUDITORIUM_CAPACITY as 'Вместимость',
+	case 
+		when AUDITORIUM.AUDITORIUM like '%-1' then '1'
+		when AUDITORIUM.AUDITORIUM like '%-2' then '2'
+		when AUDITORIUM.AUDITORIUM like '%-3' then '3'
+		when AUDITORIUM.AUDITORIUM like '%-3a' then '3a'
+		when AUDITORIUM.AUDITORIUM like '%-4' then '4'
+		when AUDITORIUM.AUDITORIUM like '%-5' then '5'
+	end 'Корпус', 
+	count(*) as 'Количество'
+from AUDITORIUM 
+group by AUDITORIUM_TYPE, AUDITORIUM_CAPACITY,
+	case 
+		when AUDITORIUM.AUDITORIUM like '%-1' then '1'
+		when AUDITORIUM.AUDITORIUM like '%-2' then '2'
+		when AUDITORIUM.AUDITORIUM like '%-3' then '3'
+		when AUDITORIUM.AUDITORIUM like '%-3a' then '3a'
+		when AUDITORIUM.AUDITORIUM like '%-4' then '4'
+		when AUDITORIUM.AUDITORIUM like '%-5' then '5'
+	end with rollup
