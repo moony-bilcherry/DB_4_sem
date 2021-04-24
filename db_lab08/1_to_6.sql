@@ -82,3 +82,34 @@ alter view Количество_кафедр with schemabinding
 		group by FACULTY.FACULTY_NAME
 go
 select * from Количество_кафедр
+
+-- ex 8: представление для таблицы TIMETABLE (лаба 6) в виде расписания + pivot
+-- PIVOT(агрегатная функция
+-- FOR столбец, содержащий значения, которые станут именами столбцов
+-- IN ([значения по горизонтали],…)
+-- )AS псевдоним таблицы (обязательно)
+drop view Расписание
+go
+create view Расписание
+	as select top(100) [День], [Пара], [1 группа], [2 группа], [4 группа], [5 группа], [6 группа], [7 группа], [8 группа], [9 группа], [10 группа]
+		from (select top(100) DAY_NAME [День],
+				convert(varchar, LESSON) [Пара],
+				convert(varchar, IDGROUP) + ' группа' [Группа],
+				[SUBJECT] + ' ' + AUDITORIUM [Дисциплина и аудитория]
+			from TIMETABLE) tbl
+		pivot
+			(max([Дисциплина и аудитория]) 
+			for [Группа]
+			in ([1 группа], [2 группа], [4 группа], [5 группа], [6 группа], [7 группа], [8 группа], [9 группа], [10 группа])
+			) as pvt
+			order by 
+				(case
+					 when [День] like 'пн' then 1
+					 when [День] like 'вт' then 2
+					 when [День] like 'ср' then 3
+					 when [День] like 'чт' then 4
+					 when [День] like 'пт' then 5
+					 when [День] like 'сб' then 6
+				 end), [Пара] asc
+go
+select * from Расписание
