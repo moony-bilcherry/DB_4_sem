@@ -5,8 +5,8 @@ declare @sub char(20),
 		@out char(300);
 declare EX1_ISIT cursor 
 	for select SUBJECT 
-		from SUBJECT 
-		where SUBJECT.PULPIT='ИСиТ'; 
+	from SUBJECT 
+	where SUBJECT.PULPIT='ИСиТ'; 
 
 	open EX1_ISIT
 		fetch EX1_ISIT into @sub;
@@ -22,7 +22,8 @@ declare EX1_ISIT cursor
 
 -- ex 2: отличие глобального курсора от локального
 declare EX2_LOCAL cursor local
-	for select AUDITORIUM, AUDITORIUM_CAPACITY from AUDITORIUM
+	for select AUDITORIUM, AUDITORIUM_CAPACITY 
+	from AUDITORIUM
 declare @aud char(10), @cap int;
 	open EX2_LOCAL;
 		fetch EX2_LOCAL into @aud, @cap;
@@ -35,7 +36,8 @@ declare @aud char(10), @cap int;
 --	go
 
 declare EX2_GLOBAL cursor global
-	for select AUDITORIUM, AUDITORIUM_CAPACITY from AUDITORIUM
+	for select AUDITORIUM, AUDITORIUM_CAPACITY 
+	from AUDITORIUM
 declare @aud char(10), @cap int;
 	open EX2_GLOBAL;
 		fetch EX2_GLOBAL into @aud, @cap;
@@ -51,8 +53,8 @@ declare @aud char(10), @cap int;
 -- ex 3: отличие статического курсора от динамического
 declare EX3_TEACHER cursor local static
 	for select PULPIT, GENDER, TEACHER_NAME
-		from TEACHER
-		where PULPIT = 'ИСиТ';
+	from TEACHER
+	where PULPIT = 'ИСиТ';
 declare @pul char(10), @gen char(1), @name char(50);
 	open EX3_TEACHER;
 		print 'Количество строк: ' + convert(varchar, @@CURSOR_ROWS);
@@ -71,7 +73,7 @@ go
 -- ex 4: scroll запрос
 declare EX4_SCROLL cursor local dynamic scroll
 	for select ROW_NUMBER() over (order by NAME asc) N, NAME
-		from STUDENT
+	from STUDENT
 declare @num int, @name char(50);
 	open EX4_SCROLL;
 		fetch last from EX4_SCROLL into @num, @name;
@@ -98,8 +100,8 @@ insert into FACULTY values ('TEST', 'testing current of');
 
 declare EX5_CURRENT cursor local scroll dynamic
 	for select FACULTY, FACULTY_NAME 
-		from FACULTY
-		for update; 
+	from FACULTY
+	for update; 
 declare @fac varchar(5), @full varchar(50); 
 	open EX5_CURRENT 
 		fetch first from EX5_CURRENT into @fac, @full; 
@@ -121,14 +123,15 @@ insert into PROGRESS (SUBJECT, IDSTUDENT, PDATE, NOTE) values
 	('КГ',   1031,  '06.05.2013',3)
 
 select NAME, NOTE 
-from PROGRESS inner join STUDENT
-	on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
-where NOTE<4
+from PROGRESS 
+	inner join STUDENT on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
+where NOTE < 4
 
 declare EX6_1 cursor local 
-	for	select NAME, NOTE from PROGRESS inner join STUDENT 
-		on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
-			where NOTE<4
+	for	select NAME, NOTE 
+	from PROGRESS 
+		inner join STUDENT on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
+	where NOTE < 4
 declare @student nvarchar(20), @mark int;  
 	open EX6_1;  
 		fetch  EX6_1 into @student, @mark;
@@ -149,9 +152,10 @@ go
 		
 -- ex 6.2: +1 к оценке конкретного студента (IDSTUDENT) - id 1025
 declare EX6_2 cursor local 
-	for	select NAME, NOTE from PROGRESS inner join STUDENT 
-		on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
-			where PROGRESS.IDSTUDENT = 1025;
+	for	select NAME, NOTE 
+	from PROGRESS 
+		inner join STUDENT on PROGRESS.IDSTUDENT = STUDENT.IDSTUDENT
+	where PROGRESS.IDSTUDENT = 1025;
 declare @student nvarchar(20), @mark int;  
 	open EX6_2;  
 		fetch  EX6_2 into @student, @mark;
@@ -164,5 +168,60 @@ from PROGRESS inner join STUDENT
 where PROGRESS.IDSTUDENT = 1025
 
 update PROGRESS set NOTE = NOTE - 1 where IDSTUDENT = 1025;
+go
 
 -- ex 8:
+select count(*) from PULPIT
+select FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
+	from FACULTY 
+		inner join PULPIT on FACULTY.FACULTY = PULPIT.FACULTY
+		left outer join SUBJECT on PULPIT.PULPIT = SUBJECT.PULPIT
+		left outer join TEACHER on PULPIT.PULPIT = TEACHER.PULPIT
+	group by FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT
+	order by FACULTY_NAME asc, PULPIT asc, SUBJECT asc;
+
+declare EX8 cursor local static 
+	for select FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
+	from FACULTY 
+		inner join PULPIT on FACULTY.FACULTY = PULPIT.FACULTY
+		left outer join SUBJECT on PULPIT.PULPIT = SUBJECT.PULPIT
+		left outer join TEACHER on PULPIT.PULPIT = TEACHER.PULPIT
+	group by FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT
+	order by FACULTY_NAME asc, PULPIT asc, SUBJECT asc;
+declare @faculty char(50), @pulpit char(10), @subject char(10), @cnt_teacher int;
+declare @temp_fac char(50), @temp_pul char(10), @list varchar(100);
+	open EX8;
+		fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
+		while @@FETCH_STATUS = 0
+			begin
+				print 'Факультет ' + rtrim(@faculty) + ': ';
+				set @temp_fac = @faculty;
+				while (@faculty = @temp_fac)
+					begin
+						set @list = '';
+						print char(9) + 'Кафедра ' + rtrim(@pulpit) + ': ';
+						print char(9) + char(9) + 'Количество преподавателей: ' + rtrim(@cnt_teacher) + '.';
+						if (@subject is null) set @list = 'Дисциплины: нет.';
+						else
+							 begin
+								set @list = 'Дисциплины: ' + rtrim(@subject);
+							 end;
+						set @temp_pul = @pulpit;
+						fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
+						if (@subject is null and @list != '' and @list != 'Дисциплины: нет.')
+							set @list += '.';
+						while (@pulpit = @temp_pul)
+							begin
+								set @list = @list + ', '+ rtrim(@subject);
+								fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
+								if (@subject is null and @list != '' and @list != 'Дисциплины: нет.')
+									set @list += '.';
+								if(@@FETCH_STATUS != 0) break;
+							end;
+						print char(9) + char(9) + @list;
+						if(@@FETCH_STATUS != 0) break;
+					end;
+			end;
+	close EX8;
+	deallocate EX8;
+go
