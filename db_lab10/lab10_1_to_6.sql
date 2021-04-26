@@ -38,7 +38,7 @@ select * from #EX1TABLE where t_ind between 1500 and 2000 order by t_ind;
 drop index #EX1TABLE_CL on #EX1TABLE
 drop table #EX1TABLE
 
--- ex 2: таблица на 10к, некастеризованный неуникальный составной индекс
+-- ex 2: таблица на 10к, некластеризованный неуникальный составной индекс
 
 create table #EX2TABLE 
 	(t_ind int,

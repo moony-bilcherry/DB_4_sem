@@ -189,7 +189,7 @@ declare EX8 cursor local static
 	group by FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT
 	order by FACULTY_NAME asc, PULPIT asc, SUBJECT asc;
 declare @faculty char(50), @pulpit char(10), @subject char(10), @cnt_teacher int;
-declare @temp_fac char(50), @temp_pul char(10), @list varchar(100);
+declare @temp_fac char(50), @temp_pul char(10), @list varchar(100), @DISCIPLINES char(12) = 'Дисциплины: ', @DISCIPLINES_NONE char(16) = 'Дисциплины: нет.';
 	open EX8;
 		fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
 		while @@FETCH_STATUS = 0
@@ -198,26 +198,39 @@ declare @temp_fac char(50), @temp_pul char(10), @list varchar(100);
 				set @temp_fac = @faculty;
 				while (@faculty = @temp_fac)
 					begin
-						set @list = '';
 						print char(9) + 'Кафедра ' + rtrim(@pulpit) + ': ';
 						print char(9) + char(9) + 'Количество преподавателей: ' + rtrim(@cnt_teacher) + '.';
-						if (@subject is null) set @list = 'Дисциплины: нет.';
-						else
-							 begin
-								set @list = 'Дисциплины: ' + rtrim(@subject);
-							 end;
+						set @list = @DISCIPLINES;
+						if(@subject is not null)
+							begin
+								if(@list = @DISCIPLINES)
+									set @list += rtrim(@subject);
+								else
+									set @list += ', ' + rtrim(@subject);
+							end;
+						if (@subject is null) set @list = @DISCIPLINES_NONE;
+
 						set @temp_pul = @pulpit;
 						fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
-						if (@subject is null and @list != '' and @list != 'Дисциплины: нет.')
-							set @list += '.';
+
+						--if (@subject is null and @list != '' and @list != @DISCIPLINES_NONE)
+						--	set @list += '.';
 						while (@pulpit = @temp_pul)
 							begin
-								set @list = @list + ', '+ rtrim(@subject);
+								if(@subject is not null)
+									begin
+										if(@list = @DISCIPLINES)
+											set @list += rtrim(@subject);
+										else
+											set @list += ', ' + rtrim(@subject);
+									end;
 								fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
-								if (@subject is null and @list != '' and @list != 'Дисциплины: нет.')
-									set @list += '.';
+								--if (@subject is null and @list != '' and @list != @DISCIPLINES_NONE)
+								--	set @list += '.';
 								if(@@FETCH_STATUS != 0) break;
 							end;
+						if(@list != @DISCIPLINES_NONE)
+							set @list += '.';
 						print char(9) + char(9) + @list;
 						if(@@FETCH_STATUS != 0) break;
 					end;
