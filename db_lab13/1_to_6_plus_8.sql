@@ -34,4 +34,23 @@ print 'Дисциплин всего: ' + convert(varchar, @temp_2);
 print 'Дисциплин на кафедре ИСиТ: ' + convert(varchar, @out_2);
 go
 
--- ex 3:
+-- ex 3: временная локальная таблица, изменить процедуру, insert
+alter procedure PSUBJECT @p varchar(20)
+	as begin
+		declare @num int = (select count(*) from SUBJECT);
+		print 'Параметры: @p = ' + @p;
+		select * from SUBJECT where PULPIT = @p;
+	end;
+go
+
+create table #EX3 (
+	sub nvarchar(10) primary key,
+	sub_name nvarchar(50),
+	pul nvarchar(50)
+)
+
+insert #EX3 exec PSUBJECT 'ИСиТ';
+select * from #EX3;
+go
+
+-- ex 4:
