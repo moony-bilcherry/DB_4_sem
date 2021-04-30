@@ -1,21 +1,19 @@
 use [04_UNIVER]
 
 -- ex 1: список дисциплин на кафедре ИСиТ в одну строку через запятую
-declare @sub char(20),
-		@out char(300);
 declare EX1_ISIT cursor 
-	for select SUBJECT 
-	from SUBJECT 
+	for select SUBJECT
+	from SUBJECT
 	where SUBJECT.PULPIT='ИСиТ'; 
-
-	open EX1_ISIT
+declare @sub char(30), @out char(500) = '';
+	open EX1_ISIT;
 		fetch EX1_ISIT into @sub;
 		print 'Дисциплины на кафедре ИСиТ: ';
 		while @@FETCH_STATUS = 0
-			begin
-				set @out = rtrim(@sub) + ', ' + @out;
-				fetch EX1_ISIT into @sub;
-			end;
+		begin
+			set @out = RTRIM(@sub) +', ' +  @out;
+			FETCH  EX1_ISIT into @sub;
+		end;
 		print @out;
 	close EX1_ISIT;
 	deallocate EX1_ISIT;
