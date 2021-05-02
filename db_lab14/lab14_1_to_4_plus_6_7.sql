@@ -75,3 +75,21 @@ from PULPIT;
 go
 
 -- ex 3: табличная функция
+drop function dbo.FFACPUL;
+go
+create function FFACPUL(@fac varchar(10), @pul varchar(10)) returns table
+	as return 
+		select FACULTY.FACULTY, PULPIT.PULPIT
+		from FACULTY left outer join PULPIT on FACULTY.FACULTY = PULPIT.FACULTY
+		where FACULTY.FACULTY = isnull(@fac, FACULTY.FACULTY)
+			and PULPIT.PULPIT = isnull(@pul, PULPIT.PULPIT);
+go
+
+select * from dbo.FFACPUL(null,null);
+select * from dbo.FFACPUL('ИДиП',null);
+select * from dbo.FFACPUL(null,'ИСиТ');
+select * from dbo.FFACPUL('ТТЛП','ЛМиЛЗ');
+select * from dbo.FFACPUL('lorem','ipsum');
+go
+
+-- ex 4: табличная, считает количество преподов на кафедре
