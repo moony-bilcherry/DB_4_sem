@@ -92,4 +92,20 @@ select * from dbo.FFACPUL('ТТЛП','ЛМиЛЗ');
 select * from dbo.FFACPUL('lorem','ipsum');
 go
 
--- ex 4: табличная, считает количество преподов на кафедре
+-- ex 4: скалярная, считает количество преподов на кафедре
+drop function dbo.FCTEACHER;
+go
+create function FCTEACHER(@pul varchar(10)) returns int
+	as begin
+		declare @rc int = (select count(*)
+			from TEACHER
+			where TEACHER.PULPIT = isnull(@pul, TEACHER.PULPIT));
+		return @rc;
+	end;
+go
+
+select PULPIT 'Кафедра', 
+	dbo.FCTEACHER(PULPIT) 'Кол-во преподавателей'
+from PULPIT;
+select dbo.FCTEACHER(null) 'Всего преподавателей';
+go
