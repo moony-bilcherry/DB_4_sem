@@ -78,29 +78,39 @@ begin catch
 		end;
 end catch;
 
--- ex 4: 2 параллельных транзакции, A - READ UNCOMMITED, B - READ COMMITED (по умолчанию)
--- A --
-	set transaction isolation level READ UNCOMMITTED 
-	begin transaction 
-	-------------------------- t1 ------------------
-	select @@SPID, 'insert SUBJECT' 'результат', * 
-		from SUBJECT where SUBJECT = 'ОЗИ';
-	select @@SPID, 'update AUDITORIUM'  'результат', AUDITORIUM, AUDITORIUM_CAPACITY, AUDITORIUM_TYPE 
-		from AUDITORIUM where AUDITORIUM = '222-1';
-	commit; 
-	-------------------------- t2 -----------------
--- B --
-	begin transaction 
-	select @@SPID
-	insert SUBJECT values ('ОЗИ', 'Основы защиты информации', 'ИСиТ'); 
-	update AUDITORIUM set AUDITORIUM_CAPACITY = 50 where AUDITORIUM = '222-1' 
-	-------------------------- t1 --------------------
-	-------------------------- t2 --------------------
-	rollback;
+-- ex 4: 2 параллельных транзакции, READ UNCOMMITED
+				--- A ---
+-- 1
+set transaction isolation level READ UNCOMMITTED 
+begin transaction
+-- 3
+select @@SPID, 'insert SUBJECT' 'результат', * 
+	from SUBJECT where SUBJECT = 'ОЗИ';
+select @@SPID, 'update AUDITORIUM'  'результат', AUDITORIUM, AUDITORIUM_CAPACITY, AUDITORIUM_TYPE 
+	from AUDITORIUM where AUDITORIUM = '222-1';
+-- 5
+commit; 
 
 delete SUBJECT where SUBJECT = 'ОЗИ';
 
 select * from SUBJECT
 select * from PULPIT
 select * from AUDITORIUM
--- ex 5:
+
+-- ex 5: READ COMMITTED 
+				--- A ---
+-- 1
+set transaction isolation level READ COMMITTED;
+begin tran
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+
+-- 3
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+
+-- 5
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+commit tran;
+
+-- ex 6: REPEATABLE READ
+				--- A ---
+-- 1
