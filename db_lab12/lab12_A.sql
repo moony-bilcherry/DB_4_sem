@@ -82,14 +82,14 @@ end catch;
 				--- A ---
 -- 1
 set transaction isolation level READ UNCOMMITTED 
-begin transaction
+begin tran
 -- 3
 select @@SPID, 'insert SUBJECT' 'результат', * 
 	from SUBJECT where SUBJECT = 'ОЗИ';
 select @@SPID, 'update AUDITORIUM'  'результат', AUDITORIUM, AUDITORIUM_CAPACITY, AUDITORIUM_TYPE 
 	from AUDITORIUM where AUDITORIUM = '222-1';
 -- 5
-commit; 
+commit tran; 
 
 delete SUBJECT where SUBJECT = 'ОЗИ';
 
@@ -112,5 +112,33 @@ select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
 commit tran;
 
 -- ex 6: REPEATABLE READ
+insert AUDITORIUM values ('126-1', 'ЛБ-К', 12,'126-1'); 
 				--- A ---
 -- 1
+set transaction isolation level  REPEATABLE READ 
+begin transaction 
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+
+-- 3
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+commit tran; 
+
+-- 4
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+
+--delete from AUDITORIUM where AUDITORIUM = '126-2';
+
+-- ex 7: SERIALIZABLE
+				--- A ---
+-- 1
+set transaction isolation level SERIALIZABLE
+begin tran
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+
+-- 3
+select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
+commit tran;
+
+delete from AUDITORIUM where AUDITORIUM = '127-1';
+
+-- ex 8: вложенная транзакция
