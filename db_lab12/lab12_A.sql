@@ -142,3 +142,19 @@ commit tran;
 delete from AUDITORIUM where AUDITORIUM = '127-1';
 
 -- ex 8: вложенная транзакция
+select count(*) 'Кол-во дисциплин ОЗИ' 
+	from SUBJECT where SUBJECT = 'ОЗИ'
+
+begin tran
+insert SUBJECT values ('ОЗИ', 'Основы защиты информации', 'ИСиТ'); 
+	begin tran
+		update SUBJECT set SUBJECT_NAME = 'Основы защиты последней клетки мозга' where SUBJECT = 'ОЗИ';
+		commit;
+	select count(*) 'Кол-во дисциплин ОЗИ' 
+	from SUBJECT where SUBJECT = 'ОЗИ'
+	if @@TRANCOUNT > 0 rollback;
+
+select count(*) 'Кол-во дисциплин ОЗИ'
+	from SUBJECT where SUBJECT = 'ОЗИ'
+
+delete from SUBJECT where SUBJECT = 'ОЗИ'
