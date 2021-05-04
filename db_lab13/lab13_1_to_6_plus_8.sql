@@ -248,16 +248,18 @@ create procedure PRINT_REPORT
 	end catch;
 go
 
-declare @temp_8_1 int, @temp_8_2 int, @temp_8_3 int, @temp_8_4 int;
-
+declare @temp_8_1 int;
 exec @temp_8_1 = PRINT_REPORT null, null;
 select @temp_8_1;
 
+declare @temp_8_2 int;
 exec @temp_8_2 = PRINT_REPORT '»“', null;
 select @temp_8_2;
 
+declare @temp_8_3 int;
 exec @temp_8_3 = PRINT_REPORT null, 'œŒË—Œ»';
 select @temp_8_3;
 
+declare @temp_8_4 int;
 exec @temp_8_4 = PRINT_REPORT null, 'testing';
 select @temp_8_4;
