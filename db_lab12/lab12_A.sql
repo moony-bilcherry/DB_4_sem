@@ -79,6 +79,8 @@ begin catch
 end catch;
 
 -- ex 4: 2 параллельных транзакции, READ UNCOMMITED
+delete AUDITORIUM where AUDITORIUM_NAME = '222-1';
+insert into AUDITORIUM values('222-1','ЛБ-К','15','222-1');
 				--- A ---
 -- 1
 set transaction isolation level READ UNCOMMITTED 
@@ -108,7 +110,6 @@ select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
 select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
 
 -- 5
-select count(*) 'Кол-во аудиторий', @@TRANCOUNT '@@TRANCOUNT' from AUDITORIUM;
 commit tran;
 
 -- ex 6: REPEATABLE READ

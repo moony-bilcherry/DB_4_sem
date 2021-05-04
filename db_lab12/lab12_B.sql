@@ -1,6 +1,6 @@
 use [04_UNIVER];
 
--- ex 5: READ UNCOMMITTED
+-- ex 4: READ UNCOMMITTED
 				--- B ---	
 -- 2
 begin tran
