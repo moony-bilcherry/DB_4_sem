@@ -56,11 +56,12 @@ go
 
 -- ex 4:
 drop procedure PAUDITORIUM_INSERT;
+delete AUDITORIUM where AUDITORIUM = '131313-1';
 go
 create procedure PAUDITORIUM_INSERT
 	@a char(20), @n varchar(20), @c int = 0, @t char(10)
 	as begin try
-		insert into AUDITORIUM values (@a, @n, @c, @t);
+		insert into AUDITORIUM values (@a, @t, @c, @n);
 		return 1;
 	end try
 	begin catch
@@ -76,7 +77,7 @@ create procedure PAUDITORIUM_INSERT
 go
 
 declare @temp_4 int;
-exec @temp_4 = PAUDITORIUM_INSERT '131313-1', 'ЛК-К', 70, '13131313131313';
+exec @temp_4 = PAUDITORIUM_INSERT '131313-1', '13131313131313', 70, 'ЛК-К';
 print 'Итог выполнения процедуры: ' + convert(varchar, @temp_4);
 go
 
@@ -124,11 +125,20 @@ print 'Количество дисциплин: ' + convert(varchar, @temp_5);
 go
 
 -- ex 6: транзакция serializable; @tn для AUDITORIUM_TYPE.AUDITORIUM_TYPENAME 
+drop procedure PAUDITORIUM_INSERTX;
+delete AUDITORIUM where AUDITORIUM_TYPE = 'ЛК-П';
+delete AUDITORIUM_TYPE where AUDITORIUM_TYPE = 'ЛК-П';
+go
 create procedure PAUDITORIUM_INSERTX
 	@a char(20), @n varchar(20), @c int = 0, @t char(10), @tn varchar(50)
 	as declare @rc int = 1;
 	begin try
-		
+		set transaction isolation level SERIALIZABLE
+		begin tran
+			insert into AUDITORIUM_TYPE values (@t, @tn);
+			exec @rc = PAUDITORIUM_INSERT @a, @n, @c, @t;
+		commit tran
+		return @rc
 	end try
 	begin catch
 		print 'Номер ошибки: ' + convert(varchar, error_number());
@@ -138,6 +148,18 @@ create procedure PAUDITORIUM_INSERTX
 		print 'Номер строки: ' + convert(varchar, error_line());
 		if error_procedure() is not null
 			print 'Имя процедуры: ' + error_procedure();
-
+		if @@TRANCOUNT > 0
+			rollback tran;
 		return -1;
 	end catch;
+go
+
+declare @temp_6 int;
+exec @temp_6 = PAUDITORIUM_INSERTX '136-1', '136-1', 36, 'ЛК-П', 'Поточная аудитория для лекций';
+print 'Итог выполнения процедуры: ' + convert(varchar, @temp_6);
+go
+
+select * from AUDITORIUM_TYPE
+select * from AUDITORIUM
+
+-- 
