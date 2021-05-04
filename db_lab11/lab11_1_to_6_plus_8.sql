@@ -169,25 +169,24 @@ update PROGRESS set NOTE = NOTE - 1 where IDSTUDENT = 1025;
 go
 
 -- ex 8:
-select count(*) from PULPIT
-select FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
+select FACULTY.FACULTY, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
 	from FACULTY 
 		inner join PULPIT on FACULTY.FACULTY = PULPIT.FACULTY
 		left outer join SUBJECT on PULPIT.PULPIT = SUBJECT.PULPIT
 		left outer join TEACHER on PULPIT.PULPIT = TEACHER.PULPIT
-	group by FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT
-	order by FACULTY_NAME asc, PULPIT asc, SUBJECT asc;
+	group by FACULTY.FACULTY, PULPIT.PULPIT, SUBJECT.SUBJECT
+	order by FACULTY asc, PULPIT asc, SUBJECT asc;
 
 declare EX8 cursor local static 
-	for select FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
+	for select FACULTY.FACULTY, PULPIT.PULPIT, SUBJECT.SUBJECT, count(TEACHER.TEACHER)
 	from FACULTY 
 		inner join PULPIT on FACULTY.FACULTY = PULPIT.FACULTY
 		left outer join SUBJECT on PULPIT.PULPIT = SUBJECT.PULPIT
 		left outer join TEACHER on PULPIT.PULPIT = TEACHER.PULPIT
-	group by FACULTY.FACULTY_NAME, PULPIT.PULPIT, SUBJECT.SUBJECT
-	order by FACULTY_NAME asc, PULPIT asc, SUBJECT asc;
-declare @faculty char(50), @pulpit char(10), @subject char(10), @cnt_teacher int;
-declare @temp_fac char(50), @temp_pul char(10), @list varchar(100), @DISCIPLINES char(12) = 'Дисциплины: ', @DISCIPLINES_NONE char(16) = 'Дисциплины: нет.';
+	group by FACULTY.FACULTY, PULPIT.PULPIT, SUBJECT.SUBJECT
+	order by FACULTY asc, PULPIT asc, SUBJECT asc;
+declare @faculty char(10), @pulpit char(10), @subject char(10), @cnt_teacher int;
+declare @temp_fac char(10), @temp_pul char(10), @list varchar(100), @DISCIPLINES char(12) = 'Дисциплины: ', @DISCIPLINES_NONE char(16) = 'Дисциплины: нет.';
 	open EX8;
 		fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
 		while @@FETCH_STATUS = 0
@@ -199,6 +198,7 @@ declare @temp_fac char(50), @temp_pul char(10), @list varchar(100), @DISCIPLINES
 						print char(9) + 'Кафедра ' + rtrim(@pulpit) + ': ';
 						print char(9) + char(9) + 'Количество преподавателей: ' + rtrim(@cnt_teacher) + '.';
 						set @list = @DISCIPLINES;
+
 						if(@subject is not null)
 							begin
 								if(@list = @DISCIPLINES)
@@ -210,9 +210,6 @@ declare @temp_fac char(50), @temp_pul char(10), @list varchar(100), @DISCIPLINES
 
 						set @temp_pul = @pulpit;
 						fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
-
-						--if (@subject is null and @list != '' and @list != @DISCIPLINES_NONE)
-						--	set @list += '.';
 						while (@pulpit = @temp_pul)
 							begin
 								if(@subject is not null)
@@ -223,8 +220,6 @@ declare @temp_fac char(50), @temp_pul char(10), @list varchar(100), @DISCIPLINES
 											set @list += ', ' + rtrim(@subject);
 									end;
 								fetch EX8 into @faculty, @pulpit, @subject, @cnt_teacher;
-								--if (@subject is null and @list != '' and @list != @DISCIPLINES_NONE)
-								--	set @list += '.';
 								if(@@FETCH_STATUS != 0) break;
 							end;
 						if(@list != @DISCIPLINES_NONE)
