@@ -94,15 +94,15 @@ create procedure SUBJECT_REPORT
 		declare SUBJECTS_LAB13 cursor for
 			select SUBJECT from SUBJECT where PULPIT = @p;
 		open SUBJECTS_LAB13;
-		fetch SUBJECTS_LAB13 into @sub;
-		while (@@FETCH_STATUS = 0)
-			begin
-				set @subs_list = rtrim(@sub) + ', ' + @subs_list;
-				set @rc += 1;
-				fetch SUBJECTS_LAB13 into @sub;
-			end;
-		print 'Дисциплины на кафедре ' + rtrim(@p) + ':';
-		print rtrim(@subs_list);
+			fetch SUBJECTS_LAB13 into @sub;
+			while (@@FETCH_STATUS = 0)
+				begin
+					set @subs_list = rtrim(@sub) + ', ' + @subs_list;
+					set @rc += 1;
+					fetch SUBJECTS_LAB13 into @sub;
+				end;
+			print 'Дисциплины на кафедре ' + rtrim(@p) + ':';
+			print rtrim(@subs_list);
 		close SUBJECTS_LAB13;
 		deallocate SUBJECTS_LAB13;
 		return @rc;
