@@ -33,6 +33,8 @@ checkpoint;
 dbcc dropcleanbuffers;
 
 create clustered index #EX1TABLE_CL on #EX1TABLE(t_ind asc);
+
+-- 0,0125 ->  0,00331
 select * from #EX1TABLE where t_ind between 1500 and 2000 order by t_ind;
 
 drop index #EX1TABLE_CL on #EX1TABLE
@@ -60,9 +62,11 @@ select count(*) as ' оличество строк' from #EX2TABLE;
 
 create index #EX2_NONCLU on #EX2TABLE(t_ind, t_identity);
 
+-- не используетс€ при фильтрации и сортировке:
 select * from #EX2TABLE where t_ind > 15000 and t_identity < 4500
 select * from #EX2TABLE order by t_ind, t_identity
 
+-- используетс€ при поиске по конкретному значению: 0.1 -> 0.034
 select * from #EX2TABLE where t_identity = 2804
 
 drop index #EX2_NONCLU on #EX2TABLE
@@ -88,7 +92,7 @@ select * from #EX3TABLE;
 select count(*) as ' оличество строк' from #EX3TABLE;
 
 create index #EX3_INCL on #EX3TABLE(t_ind) include (t_identity)
-select * from #EX3TABLE where t_ind > 15000;
+select * from #EX3TABLE where t_ind > 20000 and t_identity <5000;
 
 
 drop index #EX3_INCL on #EX3TABLE
