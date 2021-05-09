@@ -8,6 +8,8 @@ drop trigger TR_TEACHER
 drop trigger TR_TEACHER_DEL1
 drop trigger TR_TEACHER_DEL2
 drop trigger TR_TEACHER_DEL3
+drop trigger EX7_AUDITORIUM
+drop trigger TR_FACULTY_INSTEAD_OF
 drop table TR_AUDIT
 go
 
@@ -167,4 +169,53 @@ exec sp_settriggerorder @triggername = 'TR_TEACHER_DEL1',
 	@order = 'Last', @stmttype = 'DELETE';
 go
 
--- ex 7:
+-- ex 7: триггер выполняется в рамках транзакции вызвавшего его оператора
+create trigger EX7_AUDITORIUM on AUDITORIUM after INSERT, UPDATE
+	as declare @c int = (select sum(AUDITORIUM_CAPACITY) from AUDITORIUM);
+	if (@c > 700)
+		begin
+			raiserror('Общая вместимость аудиторий не может быть >700', 10, 1);
+			rollback
+		end;
+	return;
+go
+
+insert AUDITORIUM values ('151515-1', 'ЛК', 250, '151515-1');
+select * from AUDITORIUM;
+go
+
+-- ex 8: instead of триггер, запрещающий удаление строк в таблице
+create trigger TR_FACULTY_INSTEAD_OF on FACULTY instead of DELETE
+	as raiserror('Удаление факультетов запрещено',16,1);
+	return;
+go
+
+delete FACULTY where FACULTY = 'ИТ';
+go;
+
+-- ex 9: DDL-триггер на все DDL-события в бд [04_UNIVER]
+create trigger TR_DDL_UNIVER 
+		on database for DDL_DATABASE_LEVEL_EVENTS
+	as declare @ev_type varchar(50) = eventdata().value('(/EVENT_INSTANCE/EventType)[1]', 'varchar(50)');
+	declare @obj_name varchar(50) = eventdata().value('(/EVENT_INSTANCE/ObjectName)[1]', 'varchar(50)');
+	declare @obj_type varchar(50) = eventdata().value('(/EVENT_INSTANCE/ObjectType)[1]', 'varchar(50)');
+	if (@ev_type = 'CREATE_TABLE') 
+		begin
+			raiserror('Создание таблиц запрещено',16,1);
+			rollback;
+		end;
+	if (@ev_type = 'DROP_TABLE') 
+		begin
+			raiserror('Удаление таблиц запрещено',16,1);
+			rollback;
+		end;
+go
+
+create table TESTING (
+	value int
+)
+drop table TR_AUDIT;
+go
+
+-- ex 11
+
