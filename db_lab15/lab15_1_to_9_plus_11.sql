@@ -175,7 +175,7 @@ create trigger EX7_AUDITORIUM on AUDITORIUM after INSERT, UPDATE
 	if (@c > 700)
 		begin
 			raiserror('Общая вместимость аудиторий не может быть >700', 10, 1);
-			rollback
+			rollback;
 		end;
 	return;
 go
@@ -217,5 +217,37 @@ create table TESTING (
 drop table TR_AUDIT;
 go
 
--- ex 11
+-- ex 11: создать таблицу WEATHER (город, начальная дата, конечная дата, температура)
+use master
+drop table WEATHER;
+drop trigger TR_WEATHER;
+go
+create table WEATHER (
+	CITY varchar(30),
+	FROM_TIME datetime,
+	TO_TIME datetime,
+	TEMP float
+)
+go
+create trigger TR_WEATHER on WEATHER for INSERT, UPDATE
+	as declare @city varchar(30), @from datetime, @to datetime, @temp float, @count int = 0, @in varchar(300);
+	set @city = (select CITY from inserted);
+	set @from = (select FROM_TIME from inserted);
+	set @to = (select TO_TIME from inserted);
+	set @temp = (select TEMP from inserted);
+	set @in = 'Ошибка в записи: ' + rtrim(@city) + ' ' + convert(varchar, @from) + ' ' + convert(varchar, @to) + ' ' + convert(varchar, @temp);
+	set @count = (select count(*) from WEATHER where CITY = @city and (@from between FROM_TIME and TO_TIME) and (@to between FROM_TIME and TO_TIME));
+	if (@count > 1)
+		begin
+			raiserror(@in,16,1);
+			rollback;
+		end;
+	return;
+go
 
+insert into WEATHER values ('Минск','01-01-2017 00:00','01-01-2017 23:59', -10);
+insert into WEATHER values ('Минск','01-01-2017 00:00','01-01-2017 23:59', -2);
+insert into WEATHER values ('Минск','01-01-2017 00:00','01-01-2017 21:59', -10);
+insert into WEATHER values ('Минск','02-01-2017 00:00','02-01-2017 23:59', -10);
+select * from WEATHER
+go
