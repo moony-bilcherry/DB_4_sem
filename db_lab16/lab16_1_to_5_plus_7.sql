@@ -148,4 +148,17 @@ delete STUDENT where NAME = 'test2'
 select * from STUDENT
 go
 
--- ex 7:
+-- ex 7: отчет о факультетах
+select rtrim(FACULTY.FACULTY) as '@код',
+	(select COUNT(*) from PULPIT 
+		where PULPIT.FACULTY = FACULTY.FACULTY) as 'количество_кафедр',
+	(select rtrim(PULPIT.PULPIT) as '@код',
+		(select rtrim(TEACHER.TEACHER) as 'преподаватель/@код',
+			TEACHER.TEACHER_NAME as 'преподаватель'
+		from TEACHER where TEACHER.PULPIT = PULPIT.PULPIT
+		for xml path(''),type, root('преподаватели'))
+	from PULPIT where PULPIT.FACULTY = FACULTY.FACULTY 
+		for xml path('кафедра'), type, root('кафедры')) 
+from FACULTY
+for xml path('факультет'), type, root('университет')
+go
